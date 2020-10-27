@@ -1,34 +1,18 @@
 version: '3'
 services:
-    nginx:
-        image: nginx:alpine 
-        container_name: proxy
-        ports:
-            - "5043:443"
-        links: 
-            - registry:registry
-        volumes:
-            - ./auth:/etc/nginx/conf.d
-            - ./auth/nginx.conf:/etc/nginx/niginx.conf:ro
-            - certbot-etc:/etc/letsencrypt
-            - certbot-var:/var/lib/letsencrypt
-    registry: 
-        image: registry:2
-        volumes:
-            - ./data:/var/lib/registry
-    certbot:
-        image: certbot/certbot
-        volumes: 
-            - certbot-etc:/etc/letsencrypt
-            - certbot-var:/var/lib/letsencrypt
-            - web-root:/var/www/html
-        depends_on: 
-            - webserver
-        command: certonly --webroot --webroot-path=/var/www/html --email dhb220@gmail.com --agree-tos --no-eff-email --staging -d docker.cmpartners.biz  -d www.docker.cmpartners.biz
+    nodejs:
+        build:
+          context: .
+          dockerfile: Dockerfile
+        image: nodejs
+        container_name: nodejs
+        restart: unless-stopped
+        networks:
+          - app-network
 
     webserver:
         image: nginx:mainline-alpine
-        container_name: web
+        container_name: webserver
         restart: unless-stopped
         ports:
             - "80:80"
@@ -37,15 +21,35 @@ services:
             - ./nginx-conf:/etc/nginx/conf.d
             - certbot-etc:/etc/letsencrypt
             - certbot-var:/var/lib/letsencrypt
-    volumes:
-        certbot-etc:
-        certbot-var:
-        web-root:
-            driver: local
-            driver_opts:
-                type: none
-                device: /home/derekbroadwater/debian/views/
-                o: bind
+        depends_on:
+            - nodejs
+        networks:
+            - app-network
+
+    certbot:
+        image: certbot/certbot
+        container_name: certbot
+        volumes: 
+            - certbot-etc:/etc/letsencrypt
+            - certbot-var:/var/lib/letsencrypt
+            - web-root:/var/www/html
+        depends_on: 
+            - webserver
+        command: certonly --webroot --webroot-path=/var/www/html --email dhb220@gmail.com --agree-tos --no-eff-email --staging -d docker.cmpartners.biz  -d www.docker.cmpartners.biz
+
+volumes:
+    certbot-etc:
+    certbot-var:
+    web-root:
+        driver: local
+        driver_opts:
+            type: none
+            device: /home/derekbroadwater/debian/views/
+            o: bind
+
+networks:
+    app-network:
+        driver: bridge
 
 
 
