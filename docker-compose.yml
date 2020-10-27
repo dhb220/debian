@@ -1,19 +1,20 @@
 version: '3'
 services:
     nginx:
-        image: nginx:1.15-alpine 
-        container_name: proxy
+        image: nginx:alpine 
         ports:
-            - "80:80"
-            - "443:443"
+            - "5043:443"
+        links: 
+            - registry:registry
         volumes:
-            - ./data/nginx:/etc/nginx/conf.d
+            - ./auth:/etc/nginx/conf.d
+            - ./auth/nginx.conf:/etc/nginx/niginx.conf:ro
             - ./data/certbot/conf:/etc/letsencrypt
             - ./data/certbot/www:/var/www/certbot
-        environment: 
-            - BASIC_AUTH_USERNAME=username 
-            - BASIC_AUTH_PASSWORD=password 
-            - PROXY_PASS=http://web/
+    registry: 
+        image: registry:2
+        volumes:
+            - ./data:/var/lib/registry
     certbot:
         image: certbot/certbot
         volumes: 
