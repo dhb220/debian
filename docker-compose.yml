@@ -10,8 +10,8 @@ services:
         volumes:
             - ./auth:/etc/nginx/conf.d
             - ./auth/nginx.conf:/etc/nginx/niginx.conf:ro
-            - ./data/certbot/conf:/etc/letsencrypt
-            - ./data/certbot/www:/var/www/certbot
+            - certbot-etc:/etc/letsencrypt
+            - certbot-var:/var/lib/letsencrypt
     registry: 
         image: registry:2
         volumes:
@@ -19,8 +19,8 @@ services:
     certbot:
         image: certbot/certbot
         volumes: 
-            - ./data/certbot/conf:/etc/letsencrypt
-            - ./data/certbot/www:/var/www/certbot
+            - certbot-etc:/etc/letsencrypt
+            - certbot-var:/var/lib/letsencrypt
             - web-root:/var/www/html
         depends_on: 
             - webserver
